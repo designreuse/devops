@@ -1,0 +1,27 @@
+| ## | Domain                               | Port | Description                                                    |
+|----|--------------------------------------|------|----------------------------------------------------------------|
+| 01 | jenkins.MYCOMPANY.COM                | 8079 | Jenkins CI-CD                                                  |
+| 02 | porfolio.MYCOMPANY.COM               | 8000 | Team Porfolio, jenkin: Sale Marketing/porfolio                 |
+| 03 | jekyll.MYCOMPANY.COM                 | xxxx | Jekyll Static Site                                             |
+| 11 | salesforcechatbot.MYCOMPANY.COM      | 8611 | Chatbot, jenkins: Chatbot/SalesforceChatbot                    |
+| 12 | commercechatbot.MYCOMPANY.COM        | 8622 | Chatbot, jenkins: Chatbot/CommerceChatbot                      |
+| 13 | customerservicechatbot.MYCOMPANY.COM | 8633 | Chatbot, jenkins: Chatbot/CustomerServiceChatbot               |
+| 14 | leadgenerationchatbot.MYCOMPANY.COM  | 8644 | Chatbot, jenkins: Chatbot/LeadGenerationChatbot                |
+| 15 | chatbot.MYCOMPANY.COM                | 8655 | Chatbot                                                        |
+| 16 | workplace.MYCOMPANY.COM              | 8655 | Service Desk                                                   |
+| 21 | magento2.MYCOMPANY.COM               | 8711 | Magento 2                                                      |
+| 31 | eforms-builder.MYCOMPANY.COM         | ---- | eForms, jenkins: eWorkflow/eForms-Builder                      |
+| 32 | eforms.MYCOMPANY.COM                 | 8822 | eForms, jenkins: eWorkflow/	eForms-Renderer                   |
+| 33 | tomcat.MYCOMPANY.COM                 | 8866 | Tomcat Server                                                  |
+| 34 | camunda.MYCOMPANY.COM                | 8866 | Camunda BPM                                                    |
+| 35 | alfresco.MYCOMPANY.COM               | 8866 | Alfresco ECM                                                   |
+| 41 | dapp-boilerplate.MYCOMPANY.COM       | 8877 | DApp  Demo, jenkins: Blockchain/	DApp-Boilerplate              |
+| 42 | blocklancer.MYCOMPANY.COM            | 8888 | Blockchain/blocklancer                                         |
+| 43 | blocklancer-admin.MYCOMPANY.COM      | 8899 | Freelancer-Admin Node.js                                       |
+| 44 | ipfs.MYCOMPANY.COM                   | 8081 | IPFS Hash, pm2-root: ipfs                                      |
+| 45 | ipfs-api.MYCOMPANY.COM               | 5001 | IPFS-API WebUI, pm2-root: ipfs                                 |
+| 45 | ipfs-swarm.MYCOMPANY.COM             | 4001 | IPFS-Swarm, pm2-root:i pfs                                     |
+| 46 | digital-identity.MYCOMPANY.COM       | 3001 | Identity Issuer Service, jenkins: Blockchain/Digital-Identity  |
+| 47 | identity.MYCOMPANY.COM               | 3333 | Digital Identity ERC-725, jenkins: Blockchain/Digital-Identity |
+| 48 | bnb-service.MYCOMPANY.COM            | 3334 | BnB Service, jenkins: eService/BnBService, port 3200 in use    |
+| 49 | mkdocs.MYCOMPANY.COM                 | xxxx | MkDocs Static Site                                             |

@@ -1,0 +1,13 @@
+[Unit]
+Description=Cashflow Sprint Boot Application
+After=syslog.target network.target
+
+[Service]
+User=ubuntu
+Environment=JAVA_HOME=/usr/java/jdk1.8.0_171/jre/
+WorkingDirectory=@@CASHFLOW_HOME@@
+Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+ExecStart=/usr/java/jdk1.8.0_171/jre/bin/java $JAVA_OPTS -jar cashflow.jar --spring.config.location=file:application.properties
+
+[Install]
+WantedBy=multi-user.target
