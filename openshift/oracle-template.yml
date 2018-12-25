@@ -1,0 +1,93 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: 2018-06-29T07:26:20Z
+  generation: 2
+  labels:
+    app: docker-oracle-xe
+  name: docker-oracle-xe
+  namespace: insurance
+  resourceVersion: "4228"
+  selfLink: /apis/apps.openshift.io/v1/namespaces/insurance/deploymentconfigs/docker-oracle-xe
+  uid: b7fbeb82-7b6d-11e8-9d28-42010a940002
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: docker-oracle-xe
+    deploymentconfig: docker-oracle-xe
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: docker-oracle-xe
+        deploymentconfig: docker-oracle-xe
+    spec:
+      containers:
+      - image: 172.30.1.1:5000/insurance/docker-oracle-xe@sha256:555338b2e16a3e0ff45948e526b44a6455d8ae800b55ee1b3febdf66c36a4f35
+        imagePullPolicy: Always
+        name: docker-oracle-xe
+        ports:
+        - containerPort: 1521
+          protocol: TCP
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - docker-oracle-xe
+      from:
+        kind: ImageStreamTag
+        name: docker-oracle-xe:latest
+        namespace: insurance
+      lastTriggeredImage: 172.30.1.1:5000/insurance/docker-oracle-xe@sha256:555338b2e16a3e0ff45948e526b44a6455d8ae800b55ee1b3febdf66c36a4f35
+    type: ImageChange
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: 2018-06-29T07:26:22Z
+    lastUpdateTime: 2018-06-29T07:26:22Z
+    message: Deployment config has minimum availability.
+    status: "True"
+    type: Available
+  - lastTransitionTime: 2018-06-29T07:26:23Z
+    lastUpdateTime: 2018-06-29T07:26:23Z
+    message: replication controller "docker-oracle-xe-1" successfully rolled out
+    reason: NewReplicationControllerAvailable
+    status: "True"
+    type: Progressing
+  details:
+    causes:
+    - type: ConfigChange
+    message: config change
+  latestVersion: 1
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  unavailableReplicas: 0
+  updatedReplicas: 1

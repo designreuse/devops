@@ -13,7 +13,7 @@ $ netstat -plntu | grep 80
 
 Step 2 - Install and Configure PHP-FPM
 ```sh
-$ sudo apt-get install php7.0-fpm php7.0-mcrypt php7.0-curl php7.0-cli php7.0-mysql php7.0-gd php7.0-xsl php7.0-json php7.0-intl php-pear php7.0-dev php7.0-common php7.0-mbstring php7.0-zip php-soap libcurl3 curl -y
+$ sudo apt-get install php7.1-fpm php7.1-mcrypt php7.1-curl php7.1-cli php7.1-mysql php7.1-gd php7.1-xsl php7.1-json php7.1-intl php-pear php7.1-dev php7.1-common php7.1-mbstring php7.1-zip php-soap libcurl3 curl -y
 ```
 confid php-fpm file /etc/php/7.0/fpm/php.ini
 ```sh
@@ -23,7 +23,7 @@ $ zlib.output_compression = On
 ```
 Restart FPM
 ```sh
-$ sudo systemctl restart php7.0-fpm
+$ sudo systemctl restart php7.1-fpm
 ```
 
 Step 3 - Installing Percona Server Mysql 5.7 from Percona apt repository
@@ -64,7 +64,7 @@ $ sudo vi magento
 Paste The content below:
 
 upstream fastcgi_backend {
-     server  unix:/run/php/php7.0-fpm.sock;
+     server  unix:/run/php/php7.1-fpm.sock;
  }
 
  server {

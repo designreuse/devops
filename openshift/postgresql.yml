@@ -1,0 +1,109 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: 2018-07-03T09:14:13Z
+  generation: 2
+  labels:
+    app: postgresql-96-centos7
+  name: postgresql-96-centos7
+  namespace: eworkflow
+  resourceVersion: "138362"
+  selfLink: /apis/apps.openshift.io/v1/namespaces/eworkflow/deploymentconfigs/postgresql-96-centos7
+  uid: 7411c1bc-7ea1-11e8-9677-42010a940003
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: postgresql-96-centos7
+    deploymentconfig: postgresql-96-centos7
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: postgresql-96-centos7
+        deploymentconfig: postgresql-96-centos7
+    spec:
+      containers:
+      - env:
+        - name: POSTGRESQL_DATABASE
+          value: postgres
+        - name: POSTGRESQL_PASSWORD
+          value: postgres
+        - name: POSTGRESQL_USER
+          value: postgres
+        image: centos/postgresql-96-centos7@sha256:4bca0d7a1e613cb30229056b7c69880d972663070512c3bb31b2de4e4562299d
+        imagePullPolicy: Always
+        name: postgresql-96-centos7
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/pgsql/data
+          name: postgresql-96-centos7-volume-1
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: postgresql-96-centos7-volume-1
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - postgresql-96-centos7
+      from:
+        kind: ImageStreamTag
+        name: postgresql-96-centos7:latest
+        namespace: eworkflow
+      lastTriggeredImage: centos/postgresql-96-centos7@sha256:4bca0d7a1e613cb30229056b7c69880d972663070512c3bb31b2de4e4562299d
+    type: ImageChange
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: 2018-07-03T09:14:21Z
+    lastUpdateTime: 2018-07-03T09:14:21Z
+    message: replication controller "postgresql-96-centos7-1" successfully rolled
+      out
+    reason: NewReplicationControllerAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: 2018-07-03T09:14:29Z
+    lastUpdateTime: 2018-07-03T09:14:29Z
+    message: Deployment config has minimum availability.
+    status: "True"
+    type: Available
+  details:
+    causes:
+    - type: ConfigChange
+    message: config change
+  latestVersion: 1
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  unavailableReplicas: 0
+  updatedReplicas: 1

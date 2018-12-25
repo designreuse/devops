@@ -1,0 +1,193 @@
+## 0. Precondition 
+
+- [RedHat Developer](https://developers.redhat.com/): <username> and <password>
+
+
+## 1. Install docker
+
+sudo yum update                                                                         &&
+sudo subscription-manager register --username <username> --password <password> --auto-attach
+
+# Deprecated sudo yum --enablerepo=* install container-selinux                                     
+sudo subscription-manager repos --enable=rhel-7-server-rpms                             &&
+sudo subscription-manager repos --enable=rhel-7-server-extras-rpms                      &&
+sudo subscription-manager repos --enable=rhel-7-server-optional-rpms                    &&
+
+sudo yum install docker wget vim git firewalld -y                                       &&
+wget http://mirrors.viethosting.com/apache/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz -P ~/  &&
+tar xvf ~/apache-maven-3.5.4-bin.tar.gz                                                                      &&
+rm -rf apache-maven-3.5.4-bin.tar.gz                                                                         && 
+mv ~/apache-maven-* ~/maven                                                                                  &&
+echo "export M2_HOME=~/maven" | tee --append  ~/.bashrc &&
+echo "export M2=$M2_HOME/bin" | tee --append  ~/.bashrc &&
+echo "export PATH=$M2:$PATH"  | tee --append  ~/.bashrc &&
+source ~/.bashrc                                       
+
+sudo localectl set-locale LANG=en_GB.utf8 &&
+localectl status                          &&
+localectl list-locales | grep en_         &&
+
+- $ `vi /etc/docker/daemon.json` --> 
+
+{"insecure-registries": ["172.30.0.0/16"]}
+
+- systemctl restart docker.service
+# Download and Configure Openshift Origin (v3.9)
+Allow port 8443 on AWS
+cd /tmp
+wget https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-server-v3.9.0-191fece-linux-64bit.tar.gz
+tar -zxf openshift-origin-server-*.tar.gz
+cd openshift-origin-server-*
+sudo mv k* o* /usr/local/sbin/
+sudo systemctl start firewalld
+sudo systemctl enable firewalld
+sudo systemctl status firewalld
+sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=8443/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=5000/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=9200/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=9300/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=2181/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=9092/tcp --permanent
+sudo firewall-cmd --reload
+
+sudo su
+echo "export PATH=$PATH:/usr/local/sbin" | tee --append	~/.bashrc
+source ~/.bashrc
+oc cluster up --public-hostname=(public ip or public domain)
+# Access web-console : public_ip/public-domain:8443
+
+oc login -u system:admin
+oadm policy add-role-to-user system:image-builder "username"
+oc adm policy add-scc-to-group anyuid system:authenticated
+
+# Get docker-registry service IP and Port
+oc project default
+oc get service
+
+# Create new project
+su "username"
+echo "export PATH=$PATH:/usr/local/sbin" | tee --append	~/.bashrc
+source ~/.bashrc
+Login with normal user : oc login
+Input arbitrary username and password
+oc new-project "project name" (ex: insurance)
+
+# Add policy to project
+sudo su
+oc login -u system:admin
+oadm policy add-role-to-user admin "username" -n "project_name"
+oc adm policy add-scc-to-user anyuid -z "project_name"
+sudo -u username git clone https://bitbucket.org/bnbinsurance/fastquote
+oc process -f scc-config.yml | oc apply -f -
+
+sudo -u username git clone https://bitbucket.org/bnbinsurance/fastquote
+oc process -f scc-config.yml | oc apply -f -
+
+# Deploy components
+su username
+Login with normal user : oc login (username and password input in previous step)
+# Deploy kafka and elasticsearch
+oc process -f kafka.yml | oc apply -f -
+oc process -f elasticsearch.yml | oc apply -f -
+
+# Deploy oracle db
+sudo mkdir /u01
+sudo chown -R $USER:$USER /u01
+sudo chmod -R 755 /u01
+sudo chmod g+s /u01
+#oc process -f oracle.yml | oc apply -f -
+sudo docker login -u developer -p $(oc whoami -t) 172.30.1.1:5000
+sudo docker pull ejlp12/docker-oracle-xe
+sudo docker tag ejlp12/docker-oracle-xe 172.30.1.1:5000/insurance/docker-oracle-xe 
+sudo docker push 172.30.1.1:5000/insurance/docker-oracle-xe
+oc new-app docker-oracle-xe
+sudo docker images
+
+# Deploy fastquote
+
+# Modify application properties by changing kafka, zookeeper cluster ip, database cluster ip, elasticsearch cluster ip
+# fastquote/src/main/resources/config/application-prod.yml
+# Create an account in oracle
+# Add this into /etc/maven/settings.xml (maven)
+	<server>
+    <id>maven.oracle.com</id>
+    <username>username</username>
+    <password>password</password>
+    <configuration>
+      <basicAuthScope>
+        <host>ANY</host>
+        <port>ANY</port>
+        <realm>OAM 11g</realm>
+      </basicAuthScope>
+      <httpConfiguration>
+        <all>
+          <params>
+            <property>
+              <name>http.protocol.allow-circular-redirects</name>
+              <value>%b,true</value>
+            </property>
+          </params>
+        </all>
+      </httpConfiguration>
+    </configuration>
+  </server>
+  
+cd fastquote
+mvn clean install -Pprod -Dmaven.test.skip=true
+# If build fail
+	- wget http://mvn.sonner.com.br/~maven/com/oracle/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar -P ~/.m2/repository/com/oracle/ojdbc8/12.2.0.1/
+	- wget http://mvn.sonner.com.br/~maven/com/oracle/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.pom -P ~/.m2/repository/com/oracle/ojdbc8/12.2.0.1/
+cp target/fastquote-0.0.1.SNAPSHOT.war ./
+sudo docker build -t fastquote -f ./dockerfile_springboot_fastquote .
+sudo docker tag fastquote 172.30.1.1:5000/insurance/fastquote
+sudo docker push 172.30.1.1:5000/insurance/fastquote
+oc new-app fastquote
+oc get service
+# Create route for fastquote service
+oc expose svc/fastquote --hostname=public_ip/public_hostname
+
+# Check status
+oc status
+oc get pod
+oc logs -f "pod_name" --tail=100
+
+# Additional cmd
+docker rmi image_name
+oc logs -f pod_name --tail=100
+oc get dc
+oc get pod
+oc get service
+oc delete dc/fastquote
+oc delete service fastquote
+oc delete pod podname
+
+# Postgresql
+sudo docker login -u developer -p $(oc whoami -t) 172.30.1.1:5000
+sudo docker pull centos/postgresql-96-centos7
+sudo docker tag centos/postgresql-96-centos7 172.30.1.1:5000/eworkflow/postgresql
+sudo docker push 172.30.1.1:5000/eworkflow/postgresql
+oc new-app postgresql -e POSTGRESQL_DATABASE=postgres -e POSTGRESQL_PASSWORD=postgres -e POSTGRESQL_USER=postgres
+oc get pod
+oc rsh "pod_name" (ex: postgresql-1-zm7tz)
+psql -c "CREATE USER camunda WITH PASSWORD 'camunda';"
+createdb -O `CAMUNDA_USER` `CAMUNDA_DB` (ex: createdb -O camunda camunda)
+exit
+
+# Camunda
+oc get service (to get posgresql IP for connection url)
+sudo docker login -u developer -p $(oc whoami -t) 172.30.1.1:5000
+sudo docker pull camunda/camunda-bpm-platform:latest
+sudo docker tag camunda/camunda-bpm-platform 172.30.1.1:5000/eworkflow/camunda
+sudo docker push 172.30.1.1:5000/eworkflow/camunda
+oc new-app camunda -e DB_DRIVER=org.postgresql.Driver -e DB_USERNAME=camunda \
+					    -e DB_PASSWORD=camunda \
+					    -e DB_URL=jdbc:postgresql://`postgres_ip`:5432/camunda \
+					    -e WAIT_FOR=`postgres_ip`:5432
+
+ex : oc new-app camunda -e DB_DRIVER=org.postgresql.Driver -e DB_USERNAME=camunda -e DB_PASSWORD=camunda -e DB_URL=jdbc:postgresql://172.30.163.150:5432/camunda -e WAIT_FOR=172.30.163.150:5432
+oc get pod
+oc logs -f `podname`
+
+# Cashflow

@@ -1,0 +1,35 @@
+@startuml
+
+Title: Blockchain Deployment Components
+
+skinparam componentStyle uml2
+skinparam linetype ortho
+
+actor OmniChannel
+
+node "Blockchain Docker Compose" {
+  component "Blockchain Box"        as blockchainbox       #lightgrey
+  component "Origin Bridge"         as originbridge        #lightgrey
+  component "PostgreSQL"            as psql                #lightgrey
+  component "ElasticSearch"         as elasticsearch       #lightgrey
+  component "Origin JS"             as originjs            #lightgrey
+  component "Origin Messaging IPFS" as originmessagingipfs #lightgrey
+  component "Origin Messaging"      as originmessaging     #lightgrey
+  component "Ethereum DApp"         as origindapp          #lightgrey
+}
+
+OmniChannel --> blockchainbox
+OmniChannel --> originbridge
+OmniChannel --> origindapp
+
+originbridge  --> blockchainbox
+blockchainbox --> psql
+blockchainbox --> elasticsearch
+blockchainbox --> originjs
+blockchainbox --> originmessagingipfs
+blockchainbox --> originmessaging
+origindapp    --> blockchainbox
+
+center footer Best of Open-Source Software vBOSS
+
+@enduml

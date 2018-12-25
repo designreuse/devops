@@ -1,0 +1,154 @@
+# Search template.
+#
+# This defines all the configurable parameters and other objects that are needed to run the Elasticsearch service. This template can even
+# be saved in OpenShift namespace as well so that have the flexibility to do any project specific customizations. Pls note wherever
+# displayName says *** PLEASE DO NOT CHANGE THIS ***, don't touch that as those parameters will be referenced in other places.
+#
+apiVersion: v1
+kind: Template
+metadata:
+  name: fastquote-elasticsearch-template
+  namespace: default
+  annotations:
+    description: This template defines objects that are required to spin up an elasticsearch pod
+    tags: elasticsearch, fastquote-elasticsearch ,persistent  
+    openshift.io/display-name: fastquote-elasticsearch-template
+    openshift.io/long-description: "This template provides objects that are required to spin up an elasticsearch pod. The database is stored on persistent storage, so any restart of the service will not cause any impact to the data.
+     Please make sure you have provisioned PVs (Persistent Volumes) before using this template. "
+    openshift.io/provider-display-name: JHipster-OpenShift
+labels:
+  app: fastquote-elasticsearch
+  createdBy: JHipster-Team
+parameters:
+  -
+    name: APPLICATION_NAME
+    value: fastquote-elasticsearch
+    description: Name of the application
+    required: true
+    displayName: Application Name
+  -
+    name: VOLUME_CAPACITY
+    displayName: Volume Capacity
+    description: Volume space available for data, e.g. 512Mi, 2Gi.
+    value: 1Gi
+    required: true
+  - 
+    name: NAME
+    description: Elasticsearch service name
+    required: true
+    value: elasticsearch
+  -
+    name: ELASTICSEARCH_MAX_MEMORY
+    description: "Max memory Elasticsearch will use (format is [value][M|G])"
+    required: true
+    value: 1G
+  -
+    name: ELASTICSEARCH_VOLUME_CAPACITY
+    description: "Volume space available for data (format is [value][Mi|Gi])"
+    required: true
+    displayName: 'Tamanho do Volume de dados [select:5Gi=5GB:10Gi=10GB:20Gi=20GB]'
+    value: 1Gi
+  -
+    name: ELASTICSEARCH_CLUSTER_NAME
+    description: Elasticsearch cluster name
+    required: true
+    value: elasticsearch
+  -
+    name: ELASTICSEARCH_LOG_LEVEL
+    description: Elasticsearch log level
+    required: true
+    value: INFO
+objects:
+  -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${APPLICATION_NAME}
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${VOLUME_CAPACITY}"
+  -
+    apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+# This is to define the deployment strategy (either be Rolling or Recreate)
+#     strategy:
+#       type: Rolling
+#       rollingParams:
+#         updatePeriodSeconds: 1
+#         intervalSeconds: 1
+#         timeoutSeconds: 600
+#         maxUnavailable: 25%
+#         maxSurge: 25%
+#       resources:
+      triggers:
+        -
+          type: ConfigChange
+      replicas: 1
+      selector:
+        app: ${APPLICATION_NAME}
+      template:
+        metadata:
+          labels:
+            app: ${APPLICATION_NAME}
+        spec:
+          volumes:
+          - name: ${APPLICATION_NAME}-data
+            persistentVolumeClaim:
+              claimName: ${APPLICATION_NAME}
+          containers:
+          - name: ${APPLICATION_NAME}
+            env:
+            - name: ELASTICSEARCH_SERVICE_NAME
+              value: ${NAME}
+            - name: ELASTICSEARCH_MAX_MEMORY
+              value: ${ELASTICSEARCH_MAX_MEMORY}
+            - name: ELASTICSEARCH_VOLUME_CAPACITY
+              value: ${ELASTICSEARCH_VOLUME_CAPACITY}
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: ${ELASTICSEARCH_CLUSTER_NAME}
+            - name: ELASTICSEARCH_LOG_LEVEL
+              value: ${ELASTICSEARCH_LOG_LEVEL}
+            image: getupcloud/elasticsearch-11:latest
+            ports:
+            - containerPort: 9200
+              name: http
+              protocol: TCP
+            - containerPort: 9300
+              name: transport
+              protocol: TCP
+            volumeMounts:
+            - name: ${APPLICATION_NAME}-data
+              mountPath: /usr/share/elasticsearch/data/
+            resources:
+            imagePullPolicy: IfNotPresent
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
+  -
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+      ports:
+        -
+          name: http
+          port: 9200
+          protocol: TCP
+          targetPort: 9200
+        -
+          name: transport
+          port: 9300
+          protocol: TCP
+          targetPort: 9300
+      selector:
+        app: ${APPLICATION_NAME}

@@ -34,9 +34,19 @@ echo "You may be prompted for sudo password."
 echo "--------------------------------------------"
 echo
 
+if [ "`which psql`" != "" ]; then
+	read -e -p "Uninstall PostgreSQL database? [y/n] " -i "y" uninstallpg
+	if [ "$uninstallpg" = "y" ]; then
+	  sudo apt-get --purge remove postgresql postgresql-contrib postgresql-common
+	  sudo rm -rf /var/lib/postgresql
+	  sudo rm -rf /var/log/postgresql
+	  sudo rm -rf /etc/postgresql
+	fi
+fi
+
 read -e -p "Install PostgreSQL database? [y/n] " -i "y" installpg
 if [ "$installpg" = "y" ]; then
-  sudo apt-get -y install postgresql postgresql-contrib
+  sudo apt-get -y install postgresql postgresql-contrib postgresql-common
   echo
   echo "You will now set the default password for the postgres user."
   echo "This will open a psql terminal, enter:"
@@ -52,131 +62,19 @@ if [ "$installpg" = "y" ]; then
   echo
 fi
 
-read -e -p "Create Alfresco Database and user? [y/n] " -i "y" createdbalfresco
-if [ "$createdbalfresco" = "y" ]; then
-  read -s -p "Enter the Alfresco database password:" ALFRESCO_PASSWORD
-  echo ""
-  read -s -p "Re-Enter the Alfresco database password:" ALFRESCO_PASSWORD2
- while [ "$ALFRESCO_PASSWORD" != "$ALFRESCO_PASSWORD2" ]; do
-		echo "Password does not match. Please try again"
-		read -s -p "Enter the Alfresco database password:" ALFRESCO_PASSWORD
-		echo ""
-		read -s -p "Re-Enter the Alfresco database password:" ALFRESCO_PASSWORD2
-  done
-    echo
-    echo "Creating Alfresco database and user."
-	sudo -i -u postgres psql -c "CREATE USER $ALFRESCO_USER WITH PASSWORD '"$ALFRESCO_PASSWORD"';"
-	sudo -u postgres createdb -O $ALFRESCO_USER $ALFRESCO_DB
-  echo
-  echo "Remember to update alfresco-global.properties with the Alfresco database password"
-  echo
- 
-fi
-
-read -e -p "Create Camunda Database and user? [y/n] " -i "y" createdbcamunda
-if [ "$createdbcamunda" = "y" ]; then
-  read -s -p "Enter the Camunda database password:" CAMUNDA_PASSWORD
-  echo ""
-  read -s -p "Re-Enter the Camunda database password:" CAMUNDA_PASSWORD2
-  while [ "$CAMUNDA_PASSWORD" != "$CAMUNDA_PASSWORD2" ]; do
-		echo "Password does not match. Please try again"
-		read -s -p "Enter the Camunda database password:" CAMUNDA_PASSWORD
-		echo ""
-		read -s -p "Re-Enter the Camunda database password:" CAMUNDA_PASSWORD2
-  done
-    echo
-    echo "Creating Camunda database and user."
-    sudo -i -u postgres psql -c "CREATE USER $CAMUNDA_USER WITH PASSWORD '"$CAMUNDA_PASSWORD"';"
-	sudo -u postgres createdb -O $CAMUNDA_USER $CAMUNDA_DB
-  echo
-  echo "Remember to update server.xml with the Camunda database password"
-  echo
-fi
-
-read -e -p "Create Cashflow Database and user? [y/n] " -i "y" createdbcashflow
-if [ "$createdbcashflow" = "y" ]; then
-  read -s -p "Enter the Cashflow database password:" CASHFLOW_PASSWORD
-  echo ""
-  read -s -p "Re-Enter the Cashflow database password:" CASHFLOW_PASSWORD2
-  while [ "$CASHFLOW_PASSWORD" != "$CASHFLOW_PASSWORD2" ]; do
-		echo "Password does not match. Please try again"
-		read -s -p "Enter the Cashflow database password:" CASHFLOW_PASSWORD
-		echo ""
-		read -s -p "Re-Enter the Cashflow database password:" CASHFLOW_PASSWORD2
-  done
-    echo
-    echo "Creating Cashflow database and user."
-    sudo -i -u postgres psql -c "CREATE USER $CASHFLOW_USER WITH PASSWORD '"$CASHFLOW_PASSWORD"';"
-	sudo -u postgres createdb -O $CASHFLOW_USER cashflow_general
-	sudo -u postgres createdb -O $CASHFLOW_USER cashflow_TTV
-	sudo -i -u postgres psql -c "CREATE USER $CASHFLOW_USER WITH PASSWORD '"$CASHFLOW_PASSWORD"';"
-	
-	read -e -p "Do you want to initialize data for Cashflow system ? [y/n] " -i "y" cashflowinitialize
-	if [ "$cashflowinitialize" = "y" ]; then
-		
-		if [ -d "$TMP_INSTALL/cashflow" ]; then
-			cd $TMP_INSTALL/cashflow
-			git pull
-		else
-			git clone https://bitbucket.org/ecashflow/ecashflow.git $TMP_INSTALL/cashflow
-		fi
-	
-		count=`ls -1 $TMP_INSTALL/cashflow/sql/*.sql 2>/dev/null | wc -l`
-		if [ $count != 0 ]; then
-			
-			sudo -i -u postgres psql -d cashflow_general -c "CREATE SCHEMA IF NOT EXISTS cashflow;"
-			sudo -i -u postgres psql -d cashflow_general -a -f  $TMP_INSTALL/cashflow/sql/2.cashflow_create_script_general.sql
-			sudo -i -u postgres psql -d cashflow_general -a -f  $TMP_INSTALL/cashflow/sql/3.insert_data_general.sql
-			
-			sudo -i -u postgres psql -d cashflow_TTV -c "CREATE SCHEMA IF NOT EXISTS cashflow;"
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/2.cashflow_create_script_tenant.sql
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/3.create_function.sql
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/4.insert_system_value.sql
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/5.create_view.sql
-			
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/insert_master_data.sql
-			sudo -i -u postgres psql -d cashflow_TTV -a -f  $TMP_INSTALL/cashflow/sql/cashflow_TTV/additional_script.sql
-
-		else
-			echored "Scripts in $TMP_INSTALL/cashflow/sql seems not exist."
-		fi
-	fi
-	
-	sudo -i -u postgres psql -c " GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $CASHFLOW_USER;"
-	sudo -i -u postgres psql -c " GRANT ALL PRIVILEGES ON DATABASE cashflow_general TO $CASHFLOW_USER;"
-	sudo -i -u postgres psql -c " GRANT ALL PRIVILEGES ON DATABASE \"cashflow_TTV\" TO $CASHFLOW_USER;"
-	#sudo -i -u postgres psql -d cashflow_TTV -c "CREATE SCHEMA IF NOT EXISTS cashflow;"
-	#sudo -i -u postgres psql -d cashflow_general -c "CREATE SCHEMA IF NOT EXISTS cashflow;"
-	sudo -i -u postgres psql -d cashflow_TTV -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA cashflow TO $CASHFLOW_USER;"
-	sudo -i -u postgres psql -d cashflow_general -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA cashflow TO $CASHFLOW_USER;"
-
-	for table in `echo "SELECT schemaname || '.' || relname FROM pg_stat_user_tables;" |  sudo -i -u postgres psql -A -t cashflow_general`;
-	do
-		echo "GRANT ALL ON TABLE $table to $CASHFLOW_USER;"
-		echo "GRANT ALL ON TABLE $table to $CASHFLOW_USER;" | sudo -i -u postgres psql cashflow_general
-	done
-
-	for table in `echo "SELECT schemaname || '.' || relname FROM pg_stat_user_tables;" |  sudo -i -u postgres psql -A -t cashflow_TTV`;
-	do
-		echo "GRANT ALL ON TABLE $table to $CASHFLOW_USER;"
-		echo "GRANT ALL ON TABLE $table to $CASHFLOW_USER;" | sudo -i -u postgres psql cashflow_TTV
-	done
-	
-  echo
-  echo "Remember to update application properties with the cashflow database info"
-  echo
-  
-fi
 
 read -e -p "Install PostgreSQL Admin (Web)? [y/n] " -i "y" createpgadmin
 if [ "$createpgadmin" = "y" ]; then
+	 if [ -d "$PGADMIN_INSTALLATION_DEST/pgadmin4" ]; then
+		sudo rm -rf $PGADMIN_INSTALLATION_DEST/pgadmin4
+	 fi
 	 sudo apt-get -y install virtualenv python-pip libpq-dev python-dev
 	 cd $PGADMIN_INSTALLATION_DEST
 	 virtualenv pgadmin4
 	 cd $PGADMIN_INSTALLATION_DEST/pgadmin4
 	 source $PGADMIN_INSTALLATION_DEST/pgadmin4/bin/activate
-	 curl -# -o $PGADMIN_INSTALLATION_DEST/pgadmin4/pgadmin4-1.6-py2.py3-none-any.whl	https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v1.6/pip/pgadmin4-1.6-py2.py3-none-any.whl
-	 pip install $PGADMIN_INSTALLATION_DEST/pgadmin4/pgadmin4-1.6-py2.py3-none-any.whl
+	 curl -# -o $PGADMIN_INSTALLATION_DEST/pgadmin4/pgadmin4-3.1-py2.py3-none-any.whl	https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v3.1/pip/pgadmin4-3.1-py2.py3-none-any.whl
+	 pip install $PGADMIN_INSTALLATION_DEST/pgadmin4/pgadmin4-3.1-py2.py3-none-any.whl
 	 python $PGADMIN_INSTALLATION_DEST/pgadmin4/lib/python2.7/site-packages/pgadmin4/setup.py
 	 deactivate
 	 source bin/activate

@@ -11,12 +11,23 @@ server {
   }
 }
 
+# Expires map
+map $sent_http_content_type $expires {
+    default                    off;
+    text/html                  epoch;
+    text/css                   30d;
+    application/javascript     365d;
+    ~image/                    max;
+}
+
 server {
   server_name @@DNS_DOMAIN@@;
   # listen 443 ssl http2 default_server;
   # listen [::]:443 ssl http2 default_server ipv6only=on;
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
+
+  expires $expires;
   
   ##REWRITE##
   
@@ -36,6 +47,16 @@ server {
   #   location = /50x.html {
   #     root   @@WEB_ROOT@@;
   # }
+
+#  location ~* \.(png|jpg|jpeg|gif)$ {
+#      expires 365d;
+#      add_header Cache-Control "public, no-transform";
+#  }
+#
+#  location ~* \.(js|css|pdf|html|swf)$ {
+#      expires 30d;
+#      add_header Cache-Control "public, no-transform";
+#  }
 
 	##COMMON##
   

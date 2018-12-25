@@ -1,0 +1,99 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: 2018-06-29T08:24:47Z
+  generation: 2
+  labels:
+    app: fastquote
+  name: fastquote
+  namespace: insurance
+  resourceVersion: "9178"
+  selfLink: /apis/apps.openshift.io/v1/namespaces/insurance/deploymentconfigs/fastquote
+  uid: e2426363-7b75-11e8-9d28-42010a940002
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: fastquote
+    deploymentconfig: fastquote
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        app: fastquote
+        deploymentconfig: fastquote
+    spec:
+      containers:
+      - image: 172.30.1.1:5000/insurance/fastquote@sha256:2fc02c9af76671a8fe16a23ff3055ac309900bead064428c16bd7a42f1c1a023
+        imagePullPolicy: Always
+        name: fastquote
+        ports:
+        - containerPort: 8778
+          protocol: TCP
+        - containerPort: 9779
+          protocol: TCP
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - fastquote
+      from:
+        kind: ImageStreamTag
+        name: fastquote:latest
+        namespace: insurance
+      lastTriggeredImage: 172.30.1.1:5000/insurance/fastquote@sha256:2fc02c9af76671a8fe16a23ff3055ac309900bead064428c16bd7a42f1c1a023
+    type: ImageChange
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: 2018-06-29T08:24:50Z
+    lastUpdateTime: 2018-06-29T08:24:50Z
+    message: Deployment config has minimum availability.
+    status: "True"
+    type: Available
+  - lastTransitionTime: 2018-06-29T08:24:48Z
+    lastUpdateTime: 2018-06-29T08:24:51Z
+    message: replication controller "fastquote-1" successfully rolled out
+    reason: NewReplicationControllerAvailable
+    status: "True"
+    type: Progressing
+  details:
+    causes:
+    - type: ConfigChange
+    message: config change
+  latestVersion: 1
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  unavailableReplicas: 0
+  updatedReplicas: 1

@@ -152,7 +152,7 @@ if [ -f "/etc/php/$PHP_VERSION/fpm/php.ini" ]; then
 	sudo sed -i "s/\(^max_execution_time =\).*/\1 1800/" /etc/php/$PHP_VERSION/fpm/php.ini
 	sudo sed -i "s/\(^zlib.output_compression =\).*/\1 On/" /etc/php/$PHP_VERSION/fpm/php.ini
 
-	sudo systemctl restart php7.0-fpm
+	sudo systemctl restart php$PHP_VERSION-fpm
 else
 	echo "There is no file php.ini, please check if php is installed correctly."
 fi
